@@ -1,0 +1,29 @@
+{
+  "name": "devebot-co-elasticsearch",
+  "version": "0.0.1",
+  "description": "Devebot - elasticsearch bridge",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devebot/devebot-co-elasticsearch.git"
+  },
+  "keywords": [
+    "devebot",
+    "devebot-bridge"
+  ],
+  "author": "devebot",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devebot/devebot-co-elasticsearch/issues"
+  },
+  "homepage": "https://github.com/devebot/devebot-co-elasticsearch#readme",
+  "peerDependencies": {
+    "devebot": "^0.1.18"
+  },
+  "dependencies": {
+    "devebot": "^0.1.18"
+  }
+}
