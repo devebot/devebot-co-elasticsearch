@@ -21,10 +21,10 @@
   },
   "homepage": "https://github.com/devebot/devebot-co-elasticsearch#readme",
   "peerDependencies": {
-    "devebot": "^0.2.1"
+    "devebot": "^0.2.2"
   },
   "dependencies": {
-    "devebot": "^0.2.1",
+    "devebot": "^0.2.2",
     "elasticsearch": "^11.0.1",
     "superagent": "^1.8.3"
   }
