@@ -1,22 +1,11 @@
 'use strict';
 
-var Devebot = require('devebot');
-var Promise = Devebot.require('bluebird');
-var lodash = Devebot.require('lodash');
-var debugx = Devebot.require('debug')('devebot:co:elasticsearch:elasticsearchBridge');
+const elasticsearch = require('elasticsearch');
+const ElasticsearchHelper = require('./elasticsearch-helper');
 
-var elasticsearch = require('elasticsearch');
-var ElasticsearchHelper = require('./elasticsearch-helper.js');
-
-var Service = function(params) {
-  debugx.enabled && debugx(' + constructor start ...');
-
-  params = params || {};
-
+function Service(params = {}) {
   this.client = new elasticsearch.Client(params.client);
   this.helper = new ElasticsearchHelper(params.helper);
-
-  debugx.enabled && debugx(' - constructor has finished');
 };
 
 Service.argumentSchema = {

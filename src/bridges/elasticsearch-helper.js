@@ -3,42 +3,33 @@
 var Devebot = require('devebot');
 var Promise = Devebot.require('bluebird');
 var lodash = Devebot.require('lodash');
-var debugx = Devebot.require('debug')('devebot:co:elasticsearch:elasticsearchDirect');
 var superagent = require('superagent');
-var chores = require('../utils/chores.js');
+var chores = require('../utils/chores');
 
-var noop = function() {};
-
-var Service = function(params) {
-  debugx.enabled && debugx(' + constructor start ...');
-
-  params = params || {};
-
-  var self = this;
-
-  self.logger = params.logger || { trace: noop, info: noop, debug: noop, warn: noop, error: noop };
+function Service(params = {}) {
+  this.logger = this.logger || params.logger || chores.getLogger();
 
   var tracking_code = params.tracking_code || (new Date()).toISOString();
 
-  self.getTrackingCode = function() {
+  this.getTrackingCode = function() {
     return tracking_code;
   };
 
   var es_conf = params.connection_options || {};
-  self.es_url = chores.buildElasticsearchUrl(es_conf.protocol, es_conf.host, es_conf.port);
-  self.es_index_url = self.es_url + es_conf.name + '/';
-  self.es_structure = params.structure || {};
+  this.es_url = chores.buildElasticsearchUrl(es_conf.protocol, es_conf.host, es_conf.port);
+  this.es_index_url = this.es_url + es_conf.name + '/';
+  this.es_structure = params.structure || {};
 
-  self.getServiceInfo = function() {
+  this.getServiceInfo = function() {
     var conf = lodash.pick(es_conf, ['protocol', 'host', 'port', 'name']);
     return {
       connection_info: conf,
-      url: self.es_index_url,
+      url: this.es_index_url,
     };
   };
 
-  self.getServiceHelp = function() {
-    var info = self.getServiceInfo();
+  this.getServiceHelp = function() {
+    var info = this.getServiceInfo();
     return {
       type: 'record',
       title: 'Elasticsearch bridge',
@@ -52,8 +43,6 @@ var Service = function(params) {
       }
     };
   };
-
-  debugx.enabled && debugx(' - constructor has finished');
 };
 
 Service.argumentSchema = {
@@ -81,10 +70,10 @@ Service.prototype.getClusterStats = function() {
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to cluster/stats is error: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to cluster/stats is error: %s', self.getTrackingCode(), err);
         reject(err);
       } else {
-        self.logger.info('<%s> - elasticsearch cluster is good: %s', self.getTrackingCode(), res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - elasticsearch cluster is good: %s', self.getTrackingCode(), res.status);
         resolve(res.body);
       }
     });
@@ -98,14 +87,14 @@ Service.prototype.checkIndexAvailable = function() {
     .head(self.es_index_url)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to index is error: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to index is error: %s', self.getTrackingCode(), err);
         reject(404);
       } else {
         if (res.status >= 400) {
-          self.logger.info('<%s> - index is not exist: %s', self.getTrackingCode(), res.status);
+          self.logger.has('info') && self.logger.log('info', '<%s> - index is not exist: %s', self.getTrackingCode(), res.status);
           reject(res.status);
         } else {
-          self.logger.info('<%s> - index is exist: %s', self.getTrackingCode(), res.status);
+          self.logger.has('info') && self.logger.log('info', '<%s> - index is exist: %s', self.getTrackingCode(), res.status);
           resolve();
         }
       }
@@ -122,10 +111,10 @@ Service.prototype.getIndexSettings = function() {
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to index/_settings is error: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to index/_settings is error: %s', self.getTrackingCode(), err);
         reject(err);
       } else {
-        self.logger.info('<%s> - success on getting index/_settings: %s', self.getTrackingCode(), res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - success on getting index/_settings: %s', self.getTrackingCode(), res.status);
         resolve(res.body);
       }
     });
@@ -141,10 +130,10 @@ Service.prototype.getIndexMappings = function() {
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to index/_mappings is error: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to index/_mappings is error: %s', self.getTrackingCode(), err);
         reject(err);
       } else {
-        self.logger.info('<%s> - success on getting index/_mappings: %s', self.getTrackingCode(), res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - success on getting index/_mappings: %s', self.getTrackingCode(), res.status);
         resolve(res.body);
       }
     });
@@ -161,11 +150,11 @@ Service.prototype.dropIndex = function() {
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on drop index: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on drop index: %s', self.getTrackingCode(), err);
         reject(err);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Result of drop index: %s', self.getTrackingCode(), JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Result of drop index: %s', self.getTrackingCode(), JSON.stringify(result, null, 2));
         resolve();
       }
     });
@@ -182,11 +171,11 @@ Service.prototype.initIndex = function() {
     .send(self.es_structure)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on init index: %s', self.getTrackingCode(), err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on init index: %s', self.getTrackingCode(), err);
         reject(err);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Result of index init: %s', self.getTrackingCode(), JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Result of index init: %s', self.getTrackingCode(), JSON.stringify(result, null, 2));
         resolve();
       }
     });
@@ -214,13 +203,13 @@ Service.prototype.checkTypeAvailable = function(type) {
     .head(self.es_index_url + type)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to %s type is error: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to %s type is error: %s', self.getTrackingCode(), type, err);
         done(404);
       } else if (res.status >= 400) {
-        self.logger.info('<%s> - %s type is not exist: %s', self.getTrackingCode(), type, res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - %s type is not exist: %s', self.getTrackingCode(), type, res.status);
         done(res.status);
       } else {
-        self.logger.info('<%s> - %s type is exist: %s', self.getTrackingCode(), type, res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - %s type is exist: %s', self.getTrackingCode(), type, res.status);
         done(null);
       }
     });
@@ -236,11 +225,11 @@ Service.prototype.dropType = function(type) {
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on delete elasticsearch type %s: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on delete elasticsearch type %s: %s', self.getTrackingCode(), type, err);
         reject(err);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Result of elasticsearch %s deletion: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Result of elasticsearch %s deletion: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         resolve();
       }
     });
@@ -261,11 +250,11 @@ Service.prototype.initType = function(type) {
     .send(mapping)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on mapping type %s: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on mapping type %s: %s', self.getTrackingCode(), type, err);
         reject(err);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on mapping type %s: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on mapping type %s: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         resolve();
       }
     });
@@ -289,7 +278,7 @@ Service.prototype.countDocuments = function(type, queryObject) {
   var self = this;
   if (!lodash.isObject(queryObject)) queryObject = {query: {match_all: {}}};
   return Promise.promisify(function(done) {
-    self.logger.info('<%s> + count %s documents with queryObject: %s', self.getTrackingCode(), type, JSON.stringify(queryObject));
+    self.logger.has('info') && self.logger.log('info', '<%s> + count %s documents with queryObject: %s', self.getTrackingCode(), type, JSON.stringify(queryObject));
     superagent
     .post(self.es_index_url + type + '/_count')
     .type('application/json')
@@ -297,11 +286,11 @@ Service.prototype.countDocuments = function(type, queryObject) {
     .send(queryObject)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on %s document counting: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on %s document counting: %s', self.getTrackingCode(), type, err);
         done(err, null);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on %s document counting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on %s document counting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         done(null, result);
       }
     });
@@ -311,7 +300,7 @@ Service.prototype.countDocuments = function(type, queryObject) {
 Service.prototype.findDocuments = function(type, queryObject) {
   var self = this;
   return Promise.promisify(function(done) {
-    self.logger.info('<%s> + find %s documents with queryObject: %s', self.getTrackingCode(), type, JSON.stringify(queryObject));
+    self.logger.has('info') && self.logger.log('info', '<%s> + find %s documents with queryObject: %s', self.getTrackingCode(), type, JSON.stringify(queryObject));
     superagent
     .post(self.es_index_url + type + '/_search')
     .type('application/json')
@@ -319,11 +308,11 @@ Service.prototype.findDocuments = function(type, queryObject) {
     .send(queryObject)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on %s document finding: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on %s document finding: %s', self.getTrackingCode(), type, err);
         done(err, null);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on %s document finding: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on %s document finding: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         done(null, result);
       }
     });
@@ -337,13 +326,13 @@ Service.prototype.checkDocumentAvailable = function(type, documentId) {
     .head(self.es_index_url + type + '/' + documentId)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - request to document %s of %s type is error: %s', self.getTrackingCode(), documentId, type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - request to document %s of %s type is error: %s', self.getTrackingCode(), documentId, type, err);
         done(500);
       } else if (res.status >= 400) {
-        self.logger.info('<%s> - Document %s of %s type is not exist: %s', self.getTrackingCode(), documentId, type, res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Document %s of %s type is not exist: %s', self.getTrackingCode(), documentId, type, res.status);
         done(res.status);
       } else {
-        self.logger.info('<%s> - Document %s of %s type is exist: %s', self.getTrackingCode(), documentId, type, res.status);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Document %s of %s type is exist: %s', self.getTrackingCode(), documentId, type, res.status);
         done(null);
       }
     });
@@ -353,7 +342,7 @@ Service.prototype.checkDocumentAvailable = function(type, documentId) {
 Service.prototype.insertDocument = function(type, document) {
   var self = this;
   return Promise.promisify(function(done) {
-    self.logger.info('<%s> + %s document will be inserted: %s', self.getTrackingCode(), type, JSON.stringify(document));
+    self.logger.has('info') && self.logger.log('info', '<%s> + %s document will be inserted: %s', self.getTrackingCode(), type, JSON.stringify(document));
 
     var postdata = lodash.omit(document, ['_extension']);
 
@@ -364,11 +353,11 @@ Service.prototype.insertDocument = function(type, document) {
     .send(postdata)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on %s document inserting: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on %s document inserting: %s', self.getTrackingCode(), type, err);
         done(err, null);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on %s document inserting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on %s document inserting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         done(null, result);
       }
     });
@@ -381,7 +370,7 @@ Service.prototype.updateDocument = function(type, document) {
   var update_block = Promise.promisify(function(id, postdata, done) {
     postdata = postdata || {};
 
-    self.logger.info('<%s> + %s document will be updated: %s', self.getTrackingCode(), type, JSON.stringify(postdata));
+    self.logger.has('info') && self.logger.log('info', '<%s> + %s document will be updated: %s', self.getTrackingCode(), type, JSON.stringify(postdata));
 
     if (lodash.isEmpty(id) || lodash.isEmpty(postdata)) return done(null, {});
 
@@ -392,11 +381,11 @@ Service.prototype.updateDocument = function(type, document) {
     .send(postdata)
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on %s document updating: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on %s document updating: %s', self.getTrackingCode(), type, err);
         done(err);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on %s document updating: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on %s document updating: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         done(null, result);
       }
     });
@@ -428,18 +417,18 @@ Service.prototype.updateDocument = function(type, document) {
 Service.prototype.deleteDocument = function(type, document) {
   var self = this;
   return Promise.promisify(function(done) {
-    self.logger.info('<%s> + %s document will be deleted: %s', self.getTrackingCode(), type, JSON.stringify(document));
+    self.logger.has('info') && self.logger.log('info', '<%s> + %s document will be deleted: %s', self.getTrackingCode(), type, JSON.stringify(document));
     superagent
     .del(self.es_index_url + type + '/' + document._id)
     .type('application/json')
     .accept('application/json')
     .end(function(err, res) {
       if (err) {
-        self.logger.info('<%s> - Error on %s document deleting: %s', self.getTrackingCode(), type, err);
+        self.logger.has('info') && self.logger.log('info', '<%s> - Error on %s document deleting: %s', self.getTrackingCode(), type, err);
         done(err, null);
       } else {
         var result = res.body;
-        self.logger.info('<%s> - Success on %s document deleting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
+        self.logger.has('info') && self.logger.log('info', '<%s> - Success on %s document deleting: %s', self.getTrackingCode(), type, JSON.stringify(result, null, 2));
         done(null, result);
       }
     });

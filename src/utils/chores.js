@@ -1,7 +1,7 @@
 'use strict';
 
-var Devebot = require('devebot');
 var lodash = Devebot.require('lodash');
+var logolite = Devebot.require('logolite');
 var util = require('util');
 
 var utils = {};
@@ -19,6 +19,14 @@ utils.buildElasticsearchUrl = function(protocol, host, port, name) {
   } else {
     return util.format('%s://%s:%s/', protocol || 'http', host, port);
   }
+};
+
+utils.getLogger = function () {
+  return logolite.LogAdapter.getLogger();
+};
+
+utils.getTracer = function () {
+  return logolite.LogTracer.ROOT;
 };
 
 module.exports = utils;
