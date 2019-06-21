@@ -1,5 +1,7 @@
 dist
 examples
 test
+.kit
+.hit
 .gitignore
 .npmignore
