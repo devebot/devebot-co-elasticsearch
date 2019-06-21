@@ -1,6 +1,6 @@
 {
   "name": "devebot-co-elasticsearch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Devebot -co- elasticsearch bridge",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "devebot": "^0.2.2",
-    "elasticsearch": "^11.0.1",
+    "elasticsearch": "^15.4.1",
     "superagent": "^1.8.3"
   }
 }
