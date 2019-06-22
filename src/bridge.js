@@ -1,7 +1,7 @@
 'use strict';
 
 const elasticsearch = require('elasticsearch');
-const ElasticsearchHelper = require('./elasticsearch-helper');
+const ElasticsearchHelper = require('./helper');
 
 function Service(params = {}) {
   this.client = new elasticsearch.Client(params.client);
