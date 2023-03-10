@@ -37,6 +37,7 @@
     "devebot": "^0.3.0"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^8.6.0",
     "devebot": "^0.3.0",
     "elasticsearch": "^15.4.1",
     "superagent": "^1.8.5"
