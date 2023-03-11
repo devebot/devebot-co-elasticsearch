@@ -1,11 +1,14 @@
 'use strict';
 
 const elasticsearch = require('elasticsearch');
+const elasticsearchV2 = require('@elastic/elasticsearch');
 const ElasticsearchHelper = require('./helper');
 
 function Service(params = {}) {
   this.client = new elasticsearch.Client(params.client);
   this.helper = new ElasticsearchHelper(params.helper);
+
+  this.clientV2 = new elasticsearchV2.Client(params.clientV2);
 };
 
 Service.argumentSchema = {
