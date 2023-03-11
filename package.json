@@ -1,6 +1,6 @@
 {
   "name": "devebot-co-elasticsearch",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Devebot -co- elasticsearch bridge",
   "main": "index.js",
   "directories": {
