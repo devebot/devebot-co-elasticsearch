@@ -4,7 +4,7 @@ var Devebot = require('devebot');
 var Promise = Devebot.require('bluebird');
 var lodash = Devebot.require('lodash');
 var superagent = require('superagent');
-var chores = require('../utils/chores');
+var chores = require('./chores');
 
 function Service(params = {}) {
   this.logger = this.logger || params.logger || chores.getLogger();
