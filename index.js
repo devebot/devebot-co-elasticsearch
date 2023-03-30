@@ -1,1 +1,1 @@
-module.exports = require('./lib/bridges/elasticsearch-bridge.js');
+module.exports = require('./lib/bridge.js');
