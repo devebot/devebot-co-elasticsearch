@@ -18,6 +18,9 @@ Service.argumentSchema = {
     "client": {
       "type": "object"
     },
+    "clientV2": {
+      "type": "object"
+    },
     "helper": {
       "type": "object",
       "properties": {
